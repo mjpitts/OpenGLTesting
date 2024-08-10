@@ -6,8 +6,6 @@
 #include <string>
 #include <sstream>
 
-// Episode 8: Reorg. shaders by moving them into separate files. 
-
 /* This struct allows us to return two items from our shader parsing function. */
 struct ShaderProgramSource
 {
@@ -52,9 +50,6 @@ static ShaderProgramSource ParseShader(const std::string& filepath)
 
     return { ss[0].str(), ss[1].str() };
 }
-
-
-// Episode 7: Writing shaders
 
 static unsigned int CompilerShader(unsigned int type, const std::string& source)
 {
@@ -105,7 +100,6 @@ static unsigned int Createshader(const std::string& vertexShader, const std::str
 
     return program;
 }
-// Episode 7 -----------------------
 
 
 int main(void)
@@ -133,8 +127,6 @@ int main(void)
     /* Print openGl version */
     std::cout << glGetString(GL_VERSION) << std::endl;
 
-
-    // Episode 4: define buffer and buffer data ----------------------------------
     /* openGl operates as a state machine, everthing generated will have a unique ID, an integer. */
 
     float positions[6] = {
@@ -151,9 +143,6 @@ int main(void)
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     /* Docs.gl will tell you more about buffer data. */
     glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
-    // Episode 4: --------------------------------------
-    
-    // Episode 8  ---------------------
 
     /* Relative path originates from the working dir. But in viausal studio it can be set to something else. */
     /* In this case the relative path states at the project dir. */
@@ -162,15 +151,10 @@ int main(void)
     unsigned int shader = Createshader(source.VertexSource, source.FragmentSource);
     glUseProgram(shader);
 
-    // Episode 8 ---------------------
-
-    // Episode 5: Vertex attributes --------------------
-
     /* Define vertex position attribute. */
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
     /* Enable our vertex attribute, which is positions ni this case. */
     glEnableVertexAttribArray(0);
-    // Episode 5 --------------------------------------
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
