@@ -1,6 +1,58 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+
+// Episode 8: Reorg. shaders by moving them into separate files. 
+
+/* This struct allows us to return two items from our shader parsing function. */
+struct ShaderProgramSource
+{
+    std::string VertexSource;
+    std::string FragmentSource;
+};
+
+static ShaderProgramSource ParseShader(const std::string& filepath)
+{
+    std::ifstream stream(filepath);
+
+    enum class ShaderType 
+    {
+        NONE = -1,  VERTEX = 0, FRAGMENT = 1
+    };
+
+    std::string line;
+    std::stringstream ss[2];
+    ShaderType type = ShaderType::NONE;
+    while(getline(stream, line))
+    {
+        if (line.find("#shader") != std::string::npos) 
+        {
+            if (line.find("vertex") != std::string::npos) 
+            {
+                // Set mode to vertex
+                type = ShaderType::VERTEX;
+            }
+            else if (line.find("fragment") != std::string::npos)
+            {
+                // Set mode to fragment
+                type = ShaderType::FRAGMENT;
+            }
+            
+        }
+        else
+        {
+            /* Prevents indexing errors. */
+            if(type != ShaderType::NONE) { ss[(int)type] << line << '\n'; }
+        }
+    }
+
+    return { ss[0].str(), ss[1].str() };
+}
+
 
 // Episode 7: Writing shaders
 
@@ -101,33 +153,16 @@ int main(void)
     glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
     // Episode 4: --------------------------------------
     
-    // Episode 7 ---------------------
+    // Episode 8  ---------------------
 
-    /* Shader source code. */
-    std::string vertexShader = 
-        "#version 330 core\n"
-        "\n"
-        "layout(location = 0) in vec4 position;"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "   gl_Position = position;\n"
-        "}\n";
+    /* Relative path originates from the working dir. But in viausal studio it can be set to something else. */
+    /* In this case the relative path states at the project dir. */
+    ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
 
-    std::string fragmentShader =
-        "#version 330 core\n"
-        "\n"
-        "layout(location = 0) out vec4 color;"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "   color = vec4(0.5, 0.0, 0.5, 1.0);\n"
-        "}\n";
-
-    unsigned int shader = Createshader(vertexShader, fragmentShader);
+    unsigned int shader = Createshader(source.VertexSource, source.FragmentSource);
     glUseProgram(shader);
 
-    // Episode 7 ---------------------
+    // Episode 8 ---------------------
 
     // Episode 5: Vertex attributes --------------------
 
