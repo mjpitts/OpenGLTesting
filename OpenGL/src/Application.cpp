@@ -6,6 +6,21 @@
 #include <string>
 #include <sstream>
 
+/* This function clears openGL error flags, but does not print them. */
+static void GLClearError()
+{
+    while (glGetError() != GL_NO_ERROR);
+}
+
+/* This function clears the openGL error flags and prints them as it goes. */
+static void GLCheckError()
+{
+    while (GLenum error =glGetError())
+    {
+        std::cout << "[OpenGL Error] (" << error << ")" << std::endl;
+    }
+}
+
 /* This struct allows us to return two items from our shader parsing function. */
 struct ShaderProgramSource
 {
@@ -175,8 +190,11 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
+        GLClearError();
         /* Draw call, draws currently bound buffer. Right now that is unsigned int buffer. */
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        /* Check if there was drawing error. */
+        GLCheckError();
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
