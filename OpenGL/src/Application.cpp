@@ -147,6 +147,9 @@ int main(void)
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
+    /* sync window and monitor refresh rate. */
+    glfwSwapInterval(1);
+
     if(glewInit() != GLEW_OK)
         std::cout << "glew init error" << std::endl;
 
@@ -190,31 +193,44 @@ int main(void)
     unsigned int shader = Createshader(source.VertexSource, source.FragmentSource);
     GLCall((glUseProgram(shader)));
 
+    /* Get uniform id from our target program. */
+    GLCall(int location = glGetUniformLocation(shader, "u_Color"));
+    /* Uniform locator reurns -1 if not found. */
+    ASSERT(location != -1);
+    /* Color attribute is vector containing 4 floats, thus we use the 4f uniform. */
+    GLCall(glUniform4f(location, 0.5, 0.0, 0.5, 1.0));
+
     /* Define vertex position attribute. */
     GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
     /* Enable our vertex attribute, which is positions ni this case. */
     GLCall(glEnableVertexAttribArray(0));
 
     /* Loop until the user closes the window */
+    /* Red channel for the uniform, and increment that will be used to animate it. */
+    float r = 0.5f;
+    float increment = 0.0f;
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
+        GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
         /* Draw call, draws currently bound buffer. Right now that is unsigned int buffer. */
         /* Macro wrapper GlCall takes care of the error handling for us. */
+        GLCall(glUniform4f(location, r + std::sin(increment), 0.0, 0.5, 1.0));
         GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
         /* Swap front and back buffers */
         GLCall(glfwSwapBuffers(window));
 
         /* Poll for and process events */
-        glfwPollEvents();
+        GLCall(glfwPollEvents());
+
+        increment += 0.01f;
     }
 
     /* Clean up shader. */
     GLCall(glDeleteProgram(shader));
 
-    glfwTerminate();
+    GLCall(glfwTerminate());
     return 0;
 }
