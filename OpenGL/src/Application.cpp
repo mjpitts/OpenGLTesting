@@ -6,6 +6,11 @@
 #include <string>
 #include <sstream>
 
+#define ASSERT(x) if (!(x)) __debugbreak();
+#define GLCall(x) GLClearError;\
+    x;\
+    ASSERT(GLLogCall(#x, __FILE__, __LINE__))
+
 /* This function clears openGL error flags, but does not print them. */
 static void GLClearError()
 {
@@ -13,12 +18,18 @@ static void GLClearError()
 }
 
 /* This function clears the openGL error flags and prints them as it goes. */
-static void GLCheckError()
+static bool GLLogCall(const char* function, const char* file, int line)
 {
     while (GLenum error =glGetError())
     {
-        std::cout << "[OpenGL Error] (" << error << ")" << std::endl;
+        std::cout << "[OpenGL Error] (" << error << ") " 
+            << function << " " 
+            << file << " : " 
+            << line << std::endl;
+        return false;
     }
+
+    return true;
 }
 
 /* This struct allows us to return two items from our shader parsing function. */
@@ -103,15 +114,15 @@ static unsigned int Createshader(const std::string& vertexShader, const std::str
     unsigned int fs = CompilerShader(GL_FRAGMENT_SHADER, fragmentShader);
 
     /* Attach shaders to program. */
-    glAttachShader(program, vs);
-    glAttachShader(program, fs);
+    GLCall(glAttachShader(program, vs));
+    GLCall(glAttachShader(program, fs));
 
-    glLinkProgram(program);
-    glValidateProgram(program);
+    GLCall(glLinkProgram(program));
+    GLCall(glValidateProgram(program));
 
     /* Get rid of shaders now that they are part of the program. */
-    glDeleteShader(vs);
-    glDeleteShader(fs);
+    GLCall(glDeleteShader(vs));
+    GLCall(glDeleteShader(fs));
 
     return program;
 }
@@ -160,29 +171,29 @@ int main(void)
     /* Vector buffer ID container that will be passed to buffer generation. */
     unsigned int buffer;
     /* Generate buffer that openGL will draw from and assigns ID to the unsigned int address. */
-    glGenBuffers(1, &buffer);
+    GLCall(glGenBuffers(1, &buffer));
     /* Set use of Buffer and bind buffer to ID. */
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer));
     /* Docs.gl will tell you more about buffer data. */
-    glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
+    GLCall(glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW));
 
     /* Same as vectex buffer work, but for index buffer. */
     unsigned int ibo;
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6  * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    GLCall(glGenBuffers(1, &ibo));
+    GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+    GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6  * sizeof(unsigned int), indices, GL_STATIC_DRAW));
 
     /* Relative path originates from the working dir. But in viausal studio it can be set to something else. */
     /* In this case the relative path states at the project dir. */
     ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
 
     unsigned int shader = Createshader(source.VertexSource, source.FragmentSource);
-    glUseProgram(shader);
+    GLCall((glUseProgram(shader)));
 
     /* Define vertex position attribute. */
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+    GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
     /* Enable our vertex attribute, which is positions ni this case. */
-    glEnableVertexAttribArray(0);
+    GLCall(glEnableVertexAttribArray(0));
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -190,21 +201,19 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        GLClearError();
         /* Draw call, draws currently bound buffer. Right now that is unsigned int buffer. */
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-        /* Check if there was drawing error. */
-        GLCheckError();
+        /* Macro wrapper GlCall takes care of the error handling for us. */
+        GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
         /* Swap front and back buffers */
-        glfwSwapBuffers(window);
+        GLCall(glfwSwapBuffers(window));
 
         /* Poll for and process events */
         glfwPollEvents();
     }
 
     /* Clean up shader. */
-    glDeleteProgram(shader);
+    GLCall(glDeleteProgram(shader));
 
     glfwTerminate();
     return 0;
