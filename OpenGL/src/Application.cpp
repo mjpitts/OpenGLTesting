@@ -136,6 +136,11 @@ int main(void)
     if (!glfwInit())
         return -1;
 
+    /* Meaks openGL use the core version of the software as to not provide a default vertex array. */
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
     if (!window)
@@ -171,14 +176,19 @@ int main(void)
         2, 3, 0
     };
 
+    /* Vertex array object that binds vertex buffers to their attrib layout. */
+    unsigned int vao;
+    GLCall(glGenVertexArrays(1, &vao));
+    GLCall(glBindVertexArray(vao));
+
     /* Vector buffer ID container that will be passed to buffer generation. */
     unsigned int buffer;
     /* Generate buffer that openGL will draw from and assigns ID to the unsigned int address. */
     GLCall(glGenBuffers(1, &buffer));
     /* Set use of Buffer and bind buffer to ID. */
     GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer));
-    /* Docs.gl will tell you more about buffer data. */
-    GLCall(glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW));
+    /* Creates and initializes a buffer object's data store. */
+    GLCall(glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW));
 
     /* Same as vectex buffer work, but for index buffer. */
     unsigned int ibo;
@@ -202,7 +212,7 @@ int main(void)
 
     /* Define vertex position attribute. */
     GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
-    /* Enable our vertex attribute, which is positions ni this case. */
+    /* Enable our vertex attribute, which is positions in this case. */
     GLCall(glEnableVertexAttribArray(0));
 
     /* Loop until the user closes the window */
