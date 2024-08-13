@@ -3,11 +3,28 @@
 #include<vector>
 #include <GL/glew.h>
 
+#include "Renderer.h"
+
 struct VertexBufferElement
 {
 	unsigned int count;
 	unsigned int type;
-	bool normalized;
+	unsigned char normalized;
+
+	static unsigned int GetSizeOfType(unsigned int type)
+	{
+		switch(type)
+		{
+			case GL_FLOAT:			return 4;
+			case GL_UNSIGNED_INT:	return 4;
+			case GL_UNSIGNED_BYTE:	return 1;
+		}
+		
+		/* Assert false means that this assert is always triggered
+		if the code executes to here. */
+		ASSERT(false);
+		return 0;
+	}
 };
 
 class VertexBufferLayout
@@ -21,33 +38,33 @@ public:
 	~VertexBufferLayout();
 
 	template<typename T>
-	void Push(int count) 
+	void Push(unsigned int count) 
 	{
 		static_assert(false);
 	}
 
-	template<typename T>
-	void Push <float>(int count)
+	template<>
+	void Push<float>(unsigned int count)
 	{
 		m_Elements.push_back({ count, GL_FLOAT, GL_FALSE });
-		m_Stride += sizeof(GLfloat);
+		m_Stride += VertexBufferElement::GetSizeOfType(GL_FLOAT);
 	}
 
-	template<typename T>
-	void Push <unsigned int>(int count)
+	template<>
+	void Push<unsigned int>(unsigned int count)
 	{
 		m_Elements.push_back({ count, GL_UNSIGNED_INT, GL_FALSE });
-		m_Stride += sizeof(GLuint);
+		m_Stride += VertexBufferElement::GetSizeOfType(GL_UNSIGNED_INT);
 	}
 
-	template<typename T>
-	void Push <unsigned char>(int count)
+	template<>
+	void Push<unsigned char>(unsigned int count)
 	{
 		m_Elements.push_back({ count, GL_UNSIGNED_BYTE, GL_TRUE });
-		m_Stride += sizeof(GLbyte);
+		m_Stride += VertexBufferElement::GetSizeOfType(GL_UNSIGNED_BYTE);
 	}
 
 	inline unsigned int GetStride() const { return m_Stride;  }
 
-	inline const std::vector<VertexBufferElement> GetElement() const { return m_Elements;  }
+	inline const std::vector<VertexBufferElement> GetElements() const { return m_Elements;  }
 };

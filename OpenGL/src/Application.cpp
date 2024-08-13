@@ -9,6 +9,7 @@
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
 
 /* This struct allows us to return two items from our shader parsing function. */
 struct ShaderProgramSource
@@ -160,10 +161,17 @@ int main(void)
         GLCall(glGenVertexArrays(1, &vao));
         GLCall(glBindVertexArray(vao));
 
+        
+
         /* Buffer gets bound in constructor so vb.bind() doesn't need to be called. */
         VertexBuffer vb(positions, 4 * 2 * sizeof(float));
         /* Buffer gets bound in constructor. */
         IndexBuffer ib(indices, 6);
+
+        VertexArray va;
+        VertexBufferLayout layout;
+        layout.Push<float>(2);
+        va.AddBuffer(vb, layout);
 
         /* Relative path originates from the working dir. But in viausal studio it can be set to something else. */
         /* In this case the relative path states at the project dir. */
@@ -178,11 +186,6 @@ int main(void)
         ASSERT(location != -1);
         /* Color attribute is vector containing 4 floats, thus we use the 4f uniform. */
         GLCall(glUniform4f(location, 0.5, 0.0, 0.5, 1.0));
-
-        /* Define vertex position attribute. */
-        GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
-        /* Enable our vertex attribute, which is positions in this case. */
-        GLCall(glEnableVertexAttribArray(0));
 
         /* Loop until the user closes the window */
         /* Red channel for the uniform, and increment that will be used to animate it. */
