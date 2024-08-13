@@ -6,31 +6,9 @@
 #include <string>
 #include <sstream>
 
-#define ASSERT(x) if (!(x)) __debugbreak();
-#define GLCall(x) GLClearError;\
-    x;\
-    ASSERT(GLLogCall(#x, __FILE__, __LINE__))
-
-/* This function clears openGL error flags, but does not print them. */
-static void GLClearError()
-{
-    while (glGetError() != GL_NO_ERROR);
-}
-
-/* This function clears the openGL error flags and prints them as it goes. */
-static bool GLLogCall(const char* function, const char* file, int line)
-{
-    while (GLenum error =glGetError())
-    {
-        std::cout << "[OpenGL Error] (" << error << ") " 
-            << function << " " 
-            << file << " : " 
-            << line << std::endl;
-        return false;
-    }
-
-    return true;
-}
+#include "Renderer.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 
 /* This struct allows us to return two items from our shader parsing function. */
 struct ShaderProgramSource
@@ -163,84 +141,76 @@ int main(void)
 
     /* OpenGl operates as a state machine, everthing generated will have a unique ID, an integer. */
     /* Drawing square counter-clockwise. */
-    float positions[] = {
-        -0.5, -0.5, // 0 
-         0.5, -0.5, // 2
-         0.5,  0.5, // 3
-        -0.5,  0.5, // 4
-    };
-
-    // Define how we want out positions drawn so we do have to redraw indices
-    unsigned int indices[] = {
-        0, 1, 2,
-        2, 3, 0
-    };
-
-    /* Vertex array object that binds vertex buffers to their attrib layout. */
-    unsigned int vao;
-    GLCall(glGenVertexArrays(1, &vao));
-    GLCall(glBindVertexArray(vao));
-
-    /* Vector buffer ID container that will be passed to buffer generation. */
-    unsigned int buffer;
-    /* Generate buffer that openGL will draw from and assigns ID to the unsigned int address. */
-    GLCall(glGenBuffers(1, &buffer));
-    /* Set use of Buffer and bind buffer to ID. */
-    GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer));
-    /* Creates and initializes a buffer object's data store. */
-    GLCall(glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW));
-
-    /* Same as vectex buffer work, but for index buffer. */
-    unsigned int ibo;
-    GLCall(glGenBuffers(1, &ibo));
-    GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
-    GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6  * sizeof(unsigned int), indices, GL_STATIC_DRAW));
-
-    /* Relative path originates from the working dir. But in viausal studio it can be set to something else. */
-    /* In this case the relative path states at the project dir. */
-    ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
-
-    unsigned int shader = Createshader(source.VertexSource, source.FragmentSource);
-    GLCall((glUseProgram(shader)));
-
-    /* Get uniform id from our target program. */
-    GLCall(int location = glGetUniformLocation(shader, "u_Color"));
-    /* Uniform locator reurns -1 if not found. */
-    ASSERT(location != -1);
-    /* Color attribute is vector containing 4 floats, thus we use the 4f uniform. */
-    GLCall(glUniform4f(location, 0.5, 0.0, 0.5, 1.0));
-
-    /* Define vertex position attribute. */
-    GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
-    /* Enable our vertex attribute, which is positions in this case. */
-    GLCall(glEnableVertexAttribArray(0));
-
-    /* Loop until the user closes the window */
-    /* Red channel for the uniform, and increment that will be used to animate it. */
-    float r = 0.5f;
-    float increment = 0.0f;
-    while (!glfwWindowShouldClose(window))
     {
-        /* Render here */
-        GLCall(glClear(GL_COLOR_BUFFER_BIT));
+        float positions[] = {
+            -0.5, -0.5, // 0 
+             0.5, -0.5, // 2
+             0.5,  0.5, // 3
+            -0.5,  0.5, // 4
+        };
 
-        /* Draw call, draws currently bound buffer. Right now that is unsigned int buffer. */
-        /* Macro wrapper GlCall takes care of the error handling for us. */
-        GLCall(glUniform4f(location, r + std::sin(increment), 0.0, 0.5, 1.0));
-        GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+        // Define how we want out positions drawn so we do have to redraw indices
+        unsigned int indices[] = {
+            0, 1, 2,
+            2, 3, 0
+        };
 
-        /* Swap front and back buffers */
-        GLCall(glfwSwapBuffers(window));
+        /* Vertex array object that binds vertex buffers to their attrib layout. */
+        unsigned int vao;
+        GLCall(glGenVertexArrays(1, &vao));
+        GLCall(glBindVertexArray(vao));
 
-        /* Poll for and process events */
-        GLCall(glfwPollEvents());
+        /* Buffer gets bound in constructor so vb.bind() doesn't need to be called. */
+        VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+        /* Buffer gets bound in constructor. */
+        IndexBuffer ib(indices, 6);
 
-        increment += 0.01f;
+        /* Relative path originates from the working dir. But in viausal studio it can be set to something else. */
+        /* In this case the relative path states at the project dir. */
+        ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
+
+        unsigned int shader = Createshader(source.VertexSource, source.FragmentSource);
+        GLCall((glUseProgram(shader)));
+
+        /* Get uniform id from our target program. */
+        GLCall(int location = glGetUniformLocation(shader, "u_Color"));
+        /* Uniform locator reurns -1 if not found. */
+        ASSERT(location != -1);
+        /* Color attribute is vector containing 4 floats, thus we use the 4f uniform. */
+        GLCall(glUniform4f(location, 0.5, 0.0, 0.5, 1.0));
+
+        /* Define vertex position attribute. */
+        GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
+        /* Enable our vertex attribute, which is positions in this case. */
+        GLCall(glEnableVertexAttribArray(0));
+
+        /* Loop until the user closes the window */
+        /* Red channel for the uniform, and increment that will be used to animate it. */
+        float r = 0.5f;
+        float increment = 0.0f;
+        while (!glfwWindowShouldClose(window))
+        {
+            /* Render here */
+            GLCall(glClear(GL_COLOR_BUFFER_BIT));
+
+            /* Draw call, draws currently bound buffer. Right now that is unsigned int buffer. */
+            /* Macro wrapper GlCall takes care of the error handling for us. */
+            GLCall(glUniform4f(location, r + std::sin(increment), 0.0, 0.5, 1.0));
+            GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+
+            /* Swap front and back buffers */
+            GLCall(glfwSwapBuffers(window));
+
+            /* Poll for and process events */
+            GLCall(glfwPollEvents());
+
+            increment += 0.01f;
+        }
+
+        /* Clean up shader. */
+        GLCall(glDeleteProgram(shader));
     }
 
-    /* Clean up shader. */
-    GLCall(glDeleteProgram(shader));
-
-    GLCall(glfwTerminate());
+    glfwTerminate();
     return 0;
 }
