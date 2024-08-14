@@ -1,9 +1,13 @@
 #pragma once
 
-#include<vector>
 #include <GL/glew.h>
 
+#include<vector>
+#include <stdexcept>
+
 #include "Renderer.h"
+
+
 
 struct VertexBufferElement
 {
@@ -32,15 +36,17 @@ class VertexBufferLayout
 private:
 	std::vector<VertexBufferElement> m_Elements;
 	unsigned int m_Stride;
+
 public:
 	VertexBufferLayout()
 		:m_Stride(0){}
+
 	~VertexBufferLayout();
 
 	template<typename T>
 	void Push(unsigned int count) 
 	{
-		static_assert(false);
+		std::runtime_error(false);
 	}
 
 	template<>

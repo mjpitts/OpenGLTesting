@@ -207,7 +207,7 @@ int main(void)
             /* Poll for and process events */
             GLCall(glfwPollEvents());
 
-            increment += 0.01f;
+            // increment += 0.01f;
         }
 
         /* Clean up shader. */
