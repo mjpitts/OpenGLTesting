@@ -157,21 +157,21 @@ int main(void)
         };
 
         /* Vertex array object that binds vertex buffers to their attrib layout. */
-        unsigned int vao;
-        GLCall(glGenVertexArrays(1, &vao));
-        GLCall(glBindVertexArray(vao));
+        // unsigned int vao;
+        // GLCall(glGenVertexArrays(1, &vao));
+        // GLCall(glBindVertexArray(vao));
 
         
-
+        VertexArray va;
         /* Buffer gets bound in constructor so vb.bind() doesn't need to be called. */
         VertexBuffer vb(positions, 4 * 2 * sizeof(float));
-        /* Buffer gets bound in constructor. */
-        IndexBuffer ib(indices, 6);
-
-        VertexArray va;
+        
         VertexBufferLayout layout;
         layout.Push<float>(2);
         va.AddBuffer(vb, layout);
+
+        /* Buffer gets bound in constructor. */
+        IndexBuffer ib(indices, 6);
 
         /* Relative path originates from the working dir. But in viausal studio it can be set to something else. */
         /* In this case the relative path states at the project dir. */
@@ -186,7 +186,7 @@ int main(void)
         ASSERT(location != -1);
         /* Color attribute is vector containing 4 floats, thus we use the 4f uniform. */
         GLCall(glUniform4f(location, 0.5, 0.0, 0.5, 1.0));
-
+        
         /* Loop until the user closes the window */
         /* Red channel for the uniform, and increment that will be used to animate it. */
         float r = 0.5f;
@@ -196,6 +196,10 @@ int main(void)
             /* Render here */
             GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
+            GLCall(glUseProgram(shader));
+
+            va.Bind();
+            ib.Bind();
             /* Draw call, draws currently bound buffer. Right now that is unsigned int buffer. */
             /* Macro wrapper GlCall takes care of the error handling for us. */
             GLCall(glUniform4f(location, r + std::sin(increment), 0.0, 0.5, 1.0));
@@ -207,7 +211,7 @@ int main(void)
             /* Poll for and process events */
             GLCall(glfwPollEvents());
 
-            // increment += 0.01f;
+            increment += 0.01f;
         }
 
         /* Clean up shader. */
