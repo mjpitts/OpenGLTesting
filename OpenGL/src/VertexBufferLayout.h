@@ -24,8 +24,7 @@ struct VertexBufferElement
 			case GL_UNSIGNED_BYTE:	return 1;
 		}
 		
-		/* Assert false means that this assert is always triggered
-		if the code executes to here. */
+		/* Trigger if no type is matched. */
 		ASSERT(false);
 		return 0;
 	}

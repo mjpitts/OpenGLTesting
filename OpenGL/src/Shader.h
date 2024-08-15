@@ -8,7 +8,6 @@
 #include <GL/glew.h>
 #include <unordered_map>
 
-#include "Renderer.h"
 
 /* This struct allows us to return two items from our shader parsing function. */
 struct ShaderProgramSource
