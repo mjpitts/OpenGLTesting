@@ -1,8 +1,10 @@
 #include "VertexArray.h"
 #include "Renderer.h"
+#include "VertexBufferLayout.h"
 
 VertexArray::VertexArray()
 {
+	/* Create vertex arrray and passes ID to m_RenderID. */
 	GLCall(glGenVertexArrays(1, &m_RendererID));
 }
 

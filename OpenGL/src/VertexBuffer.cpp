@@ -3,11 +3,13 @@
 
 VertexBuffer::VertexBuffer(const void* data, unsigned int size)
 {
-    /* Generate buffer that openGL will draw from and assigns ID to the unsigned int address. */
+    /* Generate buffer that openGL will draw from and assigns ID to m_RenderID. */
     GLCall(glGenBuffers(1, &m_RenderID));
-    /* Set use of Buffer and bind buffer to ID. */
+
+    /* Bind Buffer */
     GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_RenderID));
-    /* Creates and initializes a buffer object's data store. */
+
+    /* Initializes VertexBuffer's object data store. */
     GLCall(glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW));
 }
 
