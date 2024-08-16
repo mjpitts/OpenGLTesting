@@ -83,6 +83,14 @@ int main(void)
 
         /* Projection matrix to fix aspect ratio problem. */
         glm::mat4 proj = glm::ortho(-1.0f, 1.0f, -0.75f, 0.75f, -0.5f, 0.5f);
+        /* View matrix which mimics camera actions. */
+        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-1, 0, 0));
+        /* Model matric tracks where model is in space. */
+        glm::mat4 model= glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
+
+        /* Resulting matrix which represent all the positioning in our scene. 
+        Multiplication order is dependant on how the matrix data is stored in different frameworks. */
+        glm::mat4 mvp = proj * view * model;
 
         Shader shader("res/shaders/Basic.shader");
         shader.Bind();
@@ -92,7 +100,7 @@ int main(void)
         Texture texture("res/textures/skel.png");
         texture.Bind();
         shader.SetUniform1i("u_Texture", 0);
-        shader.SetUniformMat4f("u_MVP", proj);
+        shader.SetUniformMat4f("u_MVP", mvp);
         
         Renderer renderer;
 
@@ -105,7 +113,11 @@ int main(void)
             /* Render here */
             renderer.Clear();
 
+            view = glm::translate(glm::mat4(1.0f), glm::vec3(sin(increment) * 0.5f, cos(increment + 0.03f) * 0.25f, 0));
+            mvp = proj * view;
+
             shader.SetUniform4f("u_Color", r + std::sin(increment), 0.0, 0.5, 1.0);
+            shader.SetUniformMat4f("u_MVP", mvp);
             GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
             renderer.Draw(va, ib, shader);
